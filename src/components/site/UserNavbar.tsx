@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation"; // Added usePathname
+import { usePathname, useRouter } from "next/navigation";
 import { 
   ShieldCheck, Bell, User, LogOut, Settings, 
-  CreditCard, History, LayoutDashboard, ChevronDown, Search, Menu
+  CreditCard, History, LayoutDashboard, ChevronDown, Search, Menu, Lock
 } from "lucide-react";
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
@@ -13,15 +13,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"; // Added for Mobile
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
 export default function UserNavbar() {
-  const pathname = usePathname(); // To track active page
+  const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  
+  // FIX: Use 'signOut' to match the updated AuthContext
+  const { user, signOut } = useAuth();
 
   const NAV_LINKS = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -29,10 +31,11 @@ export default function UserNavbar() {
     { name: "Wallet", href: "/dashboard/wallet", icon: CreditCard },
   ];
 
-  // Handle Logout with Redirect
-  const handleLogout = () => {
-    logout();
-    router.push("/");
+  // FIX: Updated logout handler
+  const handleLogout = async () => {
+    await signOut();
+    // The AuthContext will handle the redirect, but we can force it just in case
+    router.push("/auth/signin");
   };
 
   return (
@@ -87,7 +90,7 @@ export default function UserNavbar() {
         <div className="flex items-center gap-3 shrink-0">
           <ThemeToggle />
 
-          {/* Mobile Menu Trigger (Visible only on small screens) */}
+          {/* Mobile Menu Trigger */}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden text-zinc-500">
@@ -121,20 +124,19 @@ export default function UserNavbar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative text-zinc-500 hover:text-black dark:hover:text-white">
                 <Bell size={20} />
-                {user?.notifications ? (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-black" />
-                ) : null}
+                {/* Optional: Add logic to check real notifications count */}
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-black" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 p-4 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+            <DropdownMenuContent align="end" className="w-80 p-4 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 shadow-xl">
                <div className="flex justify-between items-center mb-2">
                  <h4 className="font-bold text-sm">Notifications</h4>
-                 <Badge variant="secondary" className="text-[10px]">3 New</Badge>
+                 <Badge variant="secondary" className="text-[10px]">New</Badge>
                </div>
                <div className="space-y-2">
                   <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900 text-xs border border-zinc-100 dark:border-zinc-800">
-                     <p className="font-bold text-green-600 mb-1">Booking Confirmed</p>
-                     <p className="text-zinc-500">Your Toyota Prado is ready for pickup at Westlands.</p>
+                     <p className="font-bold text-green-600 mb-1">Welcome!</p>
+                     <p className="text-zinc-500">Your account setup is complete. Start exploring the fleet.</p>
                   </div>
                </div>
             </DropdownMenuContent>
@@ -145,18 +147,29 @@ export default function UserNavbar() {
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-3 pl-1 pr-2 py-1 rounded-full border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all group">
                 <div className="w-8 h-8 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-sm">
-                  {user?.avatar ?? user?.name?.charAt(0) ?? "U"}
+                  {/* Safety check for user name */}
+                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </div>
                 <div className="text-left hidden lg:block">
-                   <p className="text-xs font-bold leading-none truncate max-w-[100px]">{user?.name}</p>
-                   <p className="text-[10px] text-zinc-500">Silver Member</p>
+                   <p className="text-xs font-bold leading-none truncate max-w-[100px]">{user?.name || "Guest"}</p>
+                   <p className="text-[10px] text-zinc-500 capitalize">{user?.role || "Member"}</p>
                 </div>
                 <ChevronDown size={14} className="text-zinc-400 group-hover:text-zinc-600" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+            <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 shadow-xl">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              
+              {/* UPGRADE: Admin Link if user is admin */}
+              {user?.role === 'admin' && (
+                <Link href="/admin">
+                  <DropdownMenuItem className="cursor-pointer bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 focus:bg-yellow-500/20 mb-1">
+                    <Lock className="mr-2 h-4 w-4" /> Admin Portal
+                  </DropdownMenuItem>
+                </Link>
+              )}
+
               <DropdownMenuItem className="cursor-pointer">
                 <User className="mr-2 h-4 w-4" /> Profile
               </DropdownMenuItem>

@@ -11,7 +11,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { cn } from "@/lib/utils";
-import Image from "next/image"; // Added for Logo Support
+import Image from "next/image"; 
 
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
@@ -20,12 +20,13 @@ import {
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user, logout } = useAuth(); // GLOBAL AUTH
+  // FIX: Destructure 'signOut' instead of 'logout'
+  const { user, signOut } = useAuth(); 
 
   // --- SCROLL LISTENER ---
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20); // Trigger slightly earlier for smoothness
+      setIsScrolled(window.scrollY > 20); 
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -52,9 +53,6 @@ export default function Navbar() {
 
         {/* --- 1. LOGO SECTION --- */}
         <Link href="/" className="flex items-center gap-3 group">
-          {/* TODO: Replace the div below with your Image tag when you have the asset
-             Example: <Image src="/logo.png" width={40} height={40} alt="Driveflow" />
-          */}
           <div className={cn(
             "w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all duration-500 group-hover:scale-105",
             isScrolled 
@@ -71,7 +69,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* --- 2. DESKTOP LINKS (With Hover Animation) --- */}
+        {/* --- 2. DESKTOP LINKS --- */}
         <div className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((link) => (
             <Link 
@@ -85,7 +83,6 @@ export default function Navbar() {
               )}
             >
               {link.name}
-              {/* Animated Underline */}
               <span className={cn(
                 "absolute bottom-0 left-0 w-0 h-[2px] transition-all duration-300 group-hover:w-full",
                 isScrolled ? "bg-yellow-500" : "bg-white"
@@ -98,14 +95,12 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-5">
           <ThemeToggle />
           
-          {/* Vertical Divider */}
           <div className={cn("h-6 w-[1px]", isScrolled ? "bg-zinc-200 dark:bg-white/10" : "bg-white/20")} />
 
           {user ? (
             /* --- LOGGED IN VIEW --- */
             <div className="flex items-center gap-4">
 
-              {/* DASHBOARD LINK */}
               <Link href={user.role === "admin" ? "/admin" : "/dashboard"}>
                 <Button
                   variant="ghost"
@@ -121,7 +116,6 @@ export default function Navbar() {
                 </Button>
               </Link>
 
-              {/* USER DROPDOWN */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className={cn(
@@ -131,7 +125,8 @@ export default function Navbar() {
                       : "border-white/20 bg-white/10 backdrop-blur-md"
                   )}>
                     <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-black font-bold shadow-md">
-                      {user.avatar ?? user.name?.charAt(0).toUpperCase()}
+                      {/* Optional Chaining for safety if avatar is missing */}
+                      {user.name?.charAt(0).toUpperCase() || "U"}
                     </div>
                   </button>
                 </DropdownMenuTrigger>
@@ -142,7 +137,7 @@ export default function Navbar() {
                   <DropdownMenuSeparator className="bg-zinc-800" />
 
                   <DropdownMenuItem
-                    onClick={logout}
+                    onClick={() => signOut()} // FIX: Use signOut()
                     className="text-red-400 focus:text-red-400 focus:bg-red-500/10 cursor-pointer rounded-lg mt-1"
                   >
                     <LogOut className="mr-2 h-4 w-4" /> Log out
@@ -180,7 +175,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* --- 4. MOBILE MENU (Hamburger) --- */}
+        {/* --- 4. MOBILE MENU --- */}
         <div className="flex md:hidden items-center gap-4">
           <ThemeToggle />
           <Sheet>
@@ -236,7 +231,7 @@ export default function Navbar() {
                     </Link>
 
                     <Button 
-                      onClick={logout}
+                      onClick={() => signOut()} // FIX: Use signOut()
                       className="w-full justify-start gap-3 bg-red-500/10 text-red-500 hover:bg-red-500/20 h-12 rounded-xl border border-red-500/20"
                     >
                       <LogOut size={18} /> Log out

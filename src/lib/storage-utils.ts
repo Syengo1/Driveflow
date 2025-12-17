@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase";
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Uploads a file to Supabase storage and returns the public URL.
@@ -8,9 +7,11 @@ import { v4 as uuidv4 } from 'uuid';
  */
 export const uploadMedia = async (file: File, folder: string): Promise<string | null> => {
   try {
-    // 1. Generate a unique filename to prevent overwriting
+    // 1. Generate a unique filename 
+    // UPGRADE: Use native Web Crypto API instead of 'uuid' package to reduce bundle size
     const fileExt = file.name.split('.').pop();
-    const fileName = `${uuidv4()}.${fileExt}`;
+    const uniqueId = crypto.randomUUID(); 
+    const fileName = `${uniqueId}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
 
     // 2. Upload the file to the 'fleet-media' bucket
