@@ -10,13 +10,12 @@ import {
   ShieldCheck, Mail, Lock, Phone, User, Loader2, 
   Chrome, Eye, EyeOff 
 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext"; 
+import { supabase } from "@/lib/supabase"; // FIX: Use Supabase directly
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   const router = useRouter();
   
   // --- PASSWORD VISIBILITY STATE ---
@@ -57,7 +56,7 @@ export default function SignUpPage() {
     setFormData(prev => ({ ...prev, phone: clean }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
@@ -65,17 +64,58 @@ export default function SignUpPage() {
       return;
     }
 
+    if (strength < 2) {
+        toast.error("Weak Password", { description: "Please use a stronger password with numbers or symbols." });
+        return;
+    }
+
     setIsLoading(true);
 
-    // Simulate API
-    setTimeout(() => {
-      setIsLoading(false);
-      login(formData.email, "user");
-      toast.success("Account Created!", {
-        description: "Welcome to the Driveflow family.",
-      });
-      router.push("/dashboard");
-    }, 2000);
+    try {
+        // 1. Sign Up Logic
+        const { data, error } = await supabase.auth.signUp({
+            email: formData.email,
+            password: formData.password,
+            options: {
+                data: {
+                    full_name: formData.name, // Used by DB Trigger to create profile
+                    phone: formData.phone
+                }
+            }
+        });
+
+        if (error) throw error;
+
+        // 2. Success Handler
+        toast.success("Account Created!", {
+            description: "Please check your email to verify your account.",
+        });
+        
+        // 3. Redirect to Sign In
+        router.push("/auth/signin");
+
+    } catch (error: any) {
+        console.error("Signup Error:", error);
+        toast.error("Signup Failed", { 
+            description: error.message || "Could not create account. Please try again." 
+        });
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`
+            }
+        });
+        if (error) throw error;
+    } catch (error: any) {
+        toast.error("Google Login Failed", { description: error.message });
+    }
   };
 
   return (
@@ -257,7 +297,12 @@ export default function SignUpPage() {
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-zinc-950 px-2 text-zinc-500">Or continue with</span></div>
           </div>
 
-          <Button type="button" variant="outline" className="w-full h-12 border-zinc-800 bg-black text-zinc-300 hover:bg-zinc-900 hover:text-white">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleGoogleLogin} // Added Google Handler
+            className="w-full h-12 border-zinc-800 bg-black text-zinc-300 hover:bg-zinc-900 hover:text-white"
+          >
             <Chrome className="mr-2 h-5 w-5" /> Google
           </Button>
 
