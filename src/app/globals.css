@@ -1,26 +1,181 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* --- LIGHT MODE VARIABLES --- */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    
+    --primary: 48 96% 53%; /* Yellow-500 */
+    --primary-foreground: 240 5.9% 10%;
+    
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 48 96% 53%; /* Yellow-500 */
+    
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* --- DARK MODE VARIABLES (Zinc-950 Base) --- */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    
+    --primary: 48 96% 53%; /* Yellow-500 */
+    --primary-foreground: 240 5.9% 10%;
+    
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 48 96% 53%;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  
+  /* Remove spinners from number inputs */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+/* --- CUSTOM UTILITIES --- */
+@layer utilities {
+  
+  /* Glassmorphism used in Admin Cards & Wizards */
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+
+  .dark .glass-panel {
+     @apply bg-zinc-900/60 border-zinc-800/50;
+  }
+
+  /* --- UTILITY: HIDE SCROLLBAR (For clean horizontal swipes) --- */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  /* --- THE "RACING LINE" SCROLLBAR (Global) --- */
+  
+  /* 1. The Highway (Container) */
+  ::-webkit-scrollbar {
+    width: 10px;  /* Vertical width */
+    height: 10px; /* Horizontal height */
+  }
+
+  /* 2. The Road Surface (Track) - Invisible for floating effect */
+  ::-webkit-scrollbar-track {
+    background: transparent; 
+  }
+
+  /* 3. The Vehicle (Thumb) - Idle State */
+  ::-webkit-scrollbar-thumb {
+    /* Light Mode: Metallic Grey (Rim color) */
+    background-color: #a1a1aa; 
+    
+    /* Makes it look like a slim pill floating in the center */
+    border-radius: 99px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    transition: background-color 0.3s ease, border-width 0.3s ease;
+  }
+
+  /* Dark Mode Override: Carbon Fiber / Dark Asphalt */
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: #3f3f46; /* Zinc-700 */
+  }
+
+  /* 4. Turbo Mode (Hover State) */
+  ::-webkit-scrollbar-thumb:hover {
+    /* Brand Gold (Engine Revving) */
+    background-color: #EAB308; 
+    
+    /* Expands slightly */
+    border-width: 2px; 
+  }
+
+  /* 5. Corner Smoothing (For Mac-like feel) */
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Text Selection Highlight */
+  ::selection {
+    @apply bg-yellow-500/30 text-yellow-500;
+  }
+}
+
+/* --- SIGNATURE CANVAS --- */
+.sigCanvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.75rem;
+  cursor: crosshair;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+
+.animate-accordion-down {
+  animation: accordion-down 0.2s ease-out;
+}
+.animate-accordion-up {
+  animation: accordion-up 0.2s ease-out;
 }
